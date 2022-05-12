@@ -11,7 +11,7 @@ GUI = {"use_synthetic": True,
        }
 
 session_params = {
-    "get ready duration": 5,
+"get ready duration": 5,
     "calibration duration": 1,
     "StimOnset": 0.3,  # time to present the stimulus
     "interTime": 0.15,  # time between stimulus
@@ -28,11 +28,12 @@ def create_session_set(blocks_N, trials_N, odd_percent):
     """
 
     # block set - list of num
-    def create_block(trials_N):
+    def create_block(trials_N, odd_percent):
         low_freq_stim_N = math.floor(odd_percent * trials_N)
         block_set = [1] * (trials_N - low_freq_stim_N) + [2] * low_freq_stim_N + [3] * low_freq_stim_N
         random.shuffle(block_set)
-        return block_set
+        block_traget = random.choice(Marker.all_target_stim())
+        return block_set, block_traget
 
     # target set - list of num
     target_set = [random.choice([2, 3]) for i in range(blocks_N)]
@@ -70,9 +71,9 @@ def create_session_set(blocks_N, trials_N, odd_percent):
 # }
 
 black_shapes = {
-    "NON_TARGET": ["black circle", 11],
-    "TARGET_1": ["black square", 1],
-    "TARGET_2": ["black triangle", 2]
+    "NON_TARGET": "black circle",
+    "TARGET_1": "black square",
+    "TARGET_2": "black triangle"
 }
 
 # rec_params = {
@@ -108,34 +109,6 @@ black_shapes = {
 #         "odd_percent": 0.2
 #     }
 
-# update experiment params
-# targets_N = math.floor(rec_params["trials_N"] * rec_params["odd_percent"])
-# session_set = create_session_set(rec_params["blocks_N"], rec_params["trials_N"], targets_N)
-# target_set = create_target_set(rec_params["blocks_N"])
-# rec_params.update({"targets_N": targets_N, "session_set": session_set, "target_set": target_set})
-# return rec_params
-
-#
-# def create_session_set(blocks_N, trials_N, targets_N):
-#     session_set = [[Marker.NON_TARGET.value] * trials_N + Marker.all_target_stim() * targets_N for i in range(blocks_N)]
-#     [random.shuffle(session_set[i]) for i in range(blocks_N)]
-#     return session_set
-
-
-# def create_target_set(blocks_N):
-#     target_stims = Marker.all_target_stim_names()
-#     target_set = [random.choice(target_stims) for i in range(blocks_N)]
-#     if all(marker == target_set[0] for marker in target_set):
-#         if target_set[0] == target_stims[0]:
-#             target_set[0] = target_stims[1]
-#         else:
-#             target_set[0] = target_stims[0]
-#     # target_set_name = [stims_dict[stm][0] for stm in target_set_marker]
-#     return target_set
-
-
-# target_set = [random.choice(Marker.all_target_stim_names()) for i in range(params.blocks_N)]
-# stimulusType = (type of stimulus to load and present- different pictures\ audio \ etc.)
 
 
 # shapes params
@@ -146,12 +119,5 @@ black_shapes = {
 # }
 
 
+# if __name__ == "__main__":
 
-
-# images
-# Target_i = load("./image/circle.png")
-# non_tagert =
-
-if __name__ == "__main__":
-    session_set_by_num, session_set_by_target, target_set = create_session_set(GUI['blocks_N'], GUI['trials_N'],
-                                                                               GUI['odd percent'])

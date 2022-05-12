@@ -15,7 +15,6 @@ BG_COLOR = "white"
 STIM_COLOR = "black"
 
 
-
 def run_session(rec_params):
     """
     This function record the experiment with board from brainflow.
@@ -29,15 +28,21 @@ def run_session(rec_params):
     global visual, core, event
 
     # create the session set
-    session_set, target_set = create_session_set(rec_params['blocks_N'], rec_params['trials_N'], rec_params['odd percent'])
+    session_set = []
+    target_set = []
+    for i in range(rec_params['blocks_N']):
+        block_set, block_target = create_block(rec_params['trials_N'], rec_params['odd percent'])
+        session_set.append(block_set)
+        target_set.append(block_target)
+
     # target_set_by_mark = [Marker.target.value for target in target_set_by_name]
     stims_dict = params.black_shapes  # todo
 
     # open window and stimulus
     win = visual.Window(color=BG_COLOR, fullscr=False)
-    non_target = visual.ImageStim(win, image=f"{IMAGES_DIR}/{stims_dict['NON_TARGET'][0]}.png")
-    target_1 = visual.ImageStim(win, image=f"{IMAGES_DIR}/{stims_dict['TARGET_1'][0]}.png")
-    traget_2 = visual.ImageStim(win, image=f"{IMAGES_DIR}/{stims_dict['TARGET_2'][0]}.png")
+    non_target = visual.ImageStim(win, image=f"{IMAGES_DIR}/{stims_dict['NON_TARGET']}.png")
+    target_1 = visual.ImageStim(win, image=f"{IMAGES_DIR}/{stims_dict['TARGET_1']}.png")
+    traget_2 = visual.ImageStim(win, image=f"{IMAGES_DIR}/{stims_dict['TARGET_2']}.png")
     msg1 = visual.TextStim(win,
                            text=f"Hello {rec_params['subject name']}! \nPress any key to start. For exit press esc",
                            color=STIM_COLOR)
@@ -55,27 +60,35 @@ def run_session(rec_params):
         for block_idx, block in enumerate(session_set):
 
             # get ready period
-            curr_target = find_stim_name(target_set[block_idx])
+            board.insert_marker(target_set[block_idx].start_block_marker)
             show_get_ready(win,
-                           progress_text(win, block_idx + 1, rec_params['blocks_N'], stim_name=curr_target),
-                           progress_image(win, stims_dict, curr_target),
+                           progress_text(win, block_idx + 1, rec_params['blocks_N'],
+                                         stim_name=stims_dict[target_set[block_idx].name]),
+                           progress_image(win, stims_dict, target_set[block_idx].name),
                            rec_params['get ready duration'])
 
             # calibration period
-            insert_block_marker(target_set[block_idx], board)
             core.wait(rec_params['calibration duration'])
 
             # stimulus period
-            for stim_inx, stim in enumerate(block):
-                stim_name = find_stim_name(stim)
-                board.insert_marker(stim)
-                show_stim_and_fixation(win, stims_dict, stim_name, rec_params['StimOnset'], rec_params['interTime'])
+            for stim in block:
+                board.insert_marker(stim.value)
+                show_stim_and_fixation(win, stims_dict, stim.name, rec_params['StimOnset'], rec_params['interTime'])
 
         core.wait(0.5)
         win.close()
         raw = board.get_data()
     save_raw(raw, rec_params, session_set)
     core.quit()
+
+
+def create_block(trials_N, odd_percent):
+    low_freq_stim_N = math.floor(odd_percent * trials_N)
+    block_set = [Marker.NON_TARGET] * (trials_N - 2 * low_freq_stim_N) + [Marker.TARGET_1] * low_freq_stim_N + \
+                [Marker.TARGET_2] * low_freq_stim_N
+    random.shuffle(block_set)
+    block_traget = random.choice(Marker.all_target_stim())
+    return block_set, block_traget
 
 
 def show_stim_for_duration(win, vis_stim, duration):
@@ -124,11 +137,6 @@ def show_stim_key_press(win, txt_msg):
     if 'escape' in keys_pressed:
         core.quit()
 
-
-def insert_block_marker(curr_target, board):
-    if curr_target == Marker.Target_1.value:
-        return board.insert_marker(Marker.start_with_target_1.value)
-    return board.insert_marker(Marker.start_with_target_2.value)
 
 
 def find_stim_name(stim_num):

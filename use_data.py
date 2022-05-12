@@ -8,18 +8,17 @@ import matplotlib.pyplot as plt
 from preprocessing import preprocess
 from pathlib import Path
 from Marker import Marker
-from g import get_epochs
-
 
 SYNTHETIC_SUBJECT_NAME = "Synthetic"
 
 
-def load_rec_params_to_session() -> dict:
+def load_rec_params_to_session(subj_name) -> dict:
     # rec_params = json_load(RECORDING_PARAMS_PATH)
     # return rec_params
-    params.GUI.update(params.session_params)
     if params.GUI["use_synthetic"]:
         params.GUI["subject"] = SYNTHETIC_SUBJECT_NAME
+    params.GUI["subject"] = subj_name
+    params.GUI.update(params.session_params)
     return params.GUI
 
 
@@ -35,6 +34,12 @@ def load_raw(rec_folder_name):
     session_path = os.path.join(os.path.join(rec_folder_path, 'session.json'))
     rec_params = json_load(rec_params_path)
     session = json_load(session_path)
-    return raw, rec_params #, session
+    return raw, rec_params
+
+
+def find_subj_file(subj_name, path=RECORDINGS_DIR):
+    for root, dirs, files in os.walk(path):
+        if subj_name in files:
+            return os.path.join(root, subj_name)
 
 
