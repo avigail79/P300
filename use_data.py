@@ -37,9 +37,16 @@ def load_raw(rec_folder_name):
     return raw, rec_params
 
 
-def find_subj_file(subj_name, path=RECORDINGS_DIR):
+def find_subj_file_name(subj_name, path=RECORDINGS_DIR):
     for root, dirs, files in os.walk(path):
-        if subj_name in files:
-            return os.path.join(root, subj_name)
+        for d in dirs:
+            if d[-len(subj_name):] == subj_name:
+                return d
+                # return os.path.join(root, subj_name)
+
+        # if subj_name in files:
+        #     return os.path.join(root, subj_name) ## todo: fix that
 
 
+if __name__ == "__main__":
+    print(find_subj_file_name('IDO3'))

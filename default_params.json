@@ -1,0 +1,12 @@
+{
+    "use_synthetic": False,
+    "Subject name": "Ido",
+    "stimulus Type": "black_shapes"
+    "blocks_N": 15,
+    "trials_N": 100,
+    "odd percent": 0.2,
+    "get ready duration": 5,
+    "calibration duration": 1,
+    "StimOnset": 0.3,
+    "interTime": 0.7,
+}

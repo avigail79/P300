@@ -1,6 +1,6 @@
 import mne
 import numpy as np
-
+from matplotlib import pyplot as plt
 from board import EEG_CHAN_NAMES
 import scipy.stats
 
@@ -78,3 +78,25 @@ def get_average_corr(chan, all_chans):
             total_corr += corr
     avg_corr = total_corr / len(all_chans)
     return avg_corr
+
+
+def down_sampling(raw, new_sampling):
+    events = mne.find_events(raw)
+    epochs = mne.Epochs(raw, events, tmin=-0.2, tmax=0.5, preload=True)
+    epochs_resampled = epochs.resample(new_sampling)
+
+    plt.figure(figsize=(7, 3))
+    plt.title(f'Original sampling rate: {epochs.info["sfreq"]}Hz.'
+              f'\nNew sampling rate: {epochs_resampled.info["sfreq"]}Hz')
+    n_samples_to_plot = int(0.5 * epochs.info['sfreq'])  # plot 0.5 seconds of data
+    plt.plot(epochs.times[:n_samples_to_plot],
+             epochs.get_data()[0, 0, :n_samples_to_plot], color='black')
+
+    n_samples_to_plot = int(0.5 * epochs_resampled.info['sfreq'])
+    plt.plot(epochs_resampled.times[:n_samples_to_plot],
+             epochs_resampled.get_data()[0, 0, :n_samples_to_plot],
+             '-o', color='red')
+    plt.xlabel('time (s)')
+    plt.legend(['original', 'downsampled'], loc='best')
+    plt.title('Effect of downsampling')
+    return epochs_resampled

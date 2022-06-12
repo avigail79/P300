@@ -1,0 +1,13 @@
+{
+    "use_synthetic": true,
+    "subject name": "0",
+    "blocks_N": 3,
+    "trials_N": 7,
+    "stimulus Type": "black_shapes",
+    "odd percent": 0.2,
+    "subject": "Avigail",
+    "get ready duration": 5,
+    "calibration duration": 1,
+    "StimOnset": 0.3,
+    "interTime": 0.15
+}

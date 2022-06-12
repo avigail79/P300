@@ -4,3 +4,5 @@ RECORDINGS_DIR = "./recordings"
 RECORDING_PARAMS_PATH = "./recording_params.json"
 # PIPELINES_DIR = "../pipelines"
 # HYPERPARAMS_DIR = "../hyperparams"
+DEFAULT_PARAMS_PATH = "./default_params.json"
+

@@ -1,0 +1,13 @@
+{
+    "use_synthetic": false,
+    "subject name": "IDO3",
+    "blocks_N": 7,
+    "trials_N": 15,
+    "stimulus Type": "black_shapes",
+    "odd percent": 0.2,
+    "subject": "99",
+    "get ready duration": 5,
+    "calibration duration": 1,
+    "StimOnset": 0.3,
+    "interTime": 0.15
+}

@@ -37,5 +37,5 @@ class Marker(IntEnum):
     #     return [stim.name for stim in cls if (stim.name == "TARGET_1" or stim.name == "TARGET_2")]
 
 
-# if __name__ == "__main__":
-#     print(Marker.all_target_stim())
+if __name__ == "__main__":
+    print(Marker.all_target_stim())
