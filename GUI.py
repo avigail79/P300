@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter.messagebox import showinfo
-from data_folder import create_session_folder, json_save
+from data_utils import create_session_folder, json_save
 
 
 class GUI:
@@ -43,6 +43,11 @@ class GUI:
         self.entry_trials.place(relx=self.entry_place, rely=.5)
         Label(self.win, text="Number of trials per block:").place(relx=self.label_place, rely=.5)
 
+        # online
+        self.online = StringVar(self.win)
+        synthetic_spin = Spinbox(self.win, values=['True', 'False'], textvariable=self.online, width=20)
+        Label(self.win, text='Use online prediction:').place(relx=self.label_place, rely=.6)
+        synthetic_spin.place(relx=self.entry_place, rely=.6)
 
     def submit_button(self):
         # def check_validity():  # todo: add validation
@@ -51,6 +56,7 @@ class GUI:
             # check_validty()
             self.rec_params = {
                 'Use synthetic': self.use_synthetic.get(),
+                'Online': self.online.get(),
                 'Subject name': self.entry_name.get(),
                 'Stimulus Type': self.find_stim_dict(),
                 'trials_N': int(self.entry_trials.get()),
@@ -58,14 +64,14 @@ class GUI:
                 "odd percent": 0.14285714285714285,
                 "get ready duration": 5,
                 "calibration duration": 1,
-                "StimOnset": 0.2,
-                "interTime": 0.1
+                "StimOnset": 0.3,
+                "interTime": 0.2
             }
             # save to json
             folder_path = create_session_folder(self.entry_name.get())
             json_save(folder_path, "params.json", self.rec_params)
-            estimated_time = self.rec_params['blocks_N'] * self.rec_params['trials_N'] * self.rec_params['StimOnset'] \
-                             * self.rec_params['interTime']
+            estimated_time = (self.rec_params['blocks_N'] * self.rec_params['trials_N'] *
+                              (self.rec_params['StimOnset'] + self.rec_params['interTime'])) / 60
             showinfo("Inforamtion", f"The session will open in a few seconds. \nEstimated time for "
                                     f"{self.rec_params['blocks_N']} blocks:\n{float('{0:.2f}'.format(estimated_time))}")
             self.win.destroy()  # close the window

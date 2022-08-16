@@ -6,7 +6,7 @@ from preprocessing import preprocess, down_sampling
 import matplotlib.pyplot as plt
 import os
 import mne
-from constants import RECORDINGS_DIR
+from constants import RECORDINGS_DIR, CHAN
 from pathlib import Path
 
 
@@ -63,10 +63,10 @@ def create_raw_plots(raw_blocks, fs):
     return fig
 
 
-def create_target_plot(raw, chan, resample_flag=False, new_sampling=None):
+def create_target_plot(raw, resample_freq, resample_flag):
     n_channel = 13
     if resample_flag:
-        raw = raw.resample(new_sampling)
+        raw = raw.resample(resample_freq)
     [raw_blocks, fs] = crop_data(raw)
 
     t_min = -0.2
@@ -80,23 +80,24 @@ def create_target_plot(raw, chan, resample_flag=False, new_sampling=None):
         events = mne.find_events(raw_blocks[raw_blk][1])
         epochs = mne.Epochs(raw_blocks[raw_blk][1], events, tmin=t_min, tmax=t_max, picks='data',on_missing='raise', baseline=None)
 
+        method = 'mean'
         if raw_blocks[raw_blk][0] == 92:
-            evokeds_non_target += epochs['3'].average().get_data() * 10e3
-            evokeds_target += epochs['2'].average().get_data() * 10e3
+            evokeds_non_target += epochs['3'].average(method=method).get_data() * 10e3
+            evokeds_target += epochs['2'].average(method=method).get_data() * 10e3
         elif raw_blocks[raw_blk][0] == 93:
-            evokeds_non_target += epochs['2'].average().get_data() * 10e3
-            evokeds_target += epochs['3'].average().get_data() * 10e3
+            evokeds_non_target += epochs['2'].average(method=method).get_data() * 10e3
+            evokeds_target += epochs['3'].average(method=method).get_data() * 10e3
 
     j=0
     figures = []
-    for ch_type in chan.keys():
-        fig, axs = plt.subplots(len(chan[ch_type]), sharex='all', sharey='all')
+    for ch_type in CHAN.keys():
+        fig, axs = plt.subplots(len(CHAN[ch_type]), sharex='all', sharey='all')
         t = np.linspace(t_min, t_max, tspan)
         fig.supxlabel('time(ms)')
         fig.supylabel('mV')
-        fig.legend(['target', 'non target'])
+        fig.legend(['target', 'non target'], loc='upper center')
         fig.suptitle(ch_type)
-        for c, ch in enumerate(chan[ch_type]):
+        for c, ch in enumerate(CHAN[ch_type]):
             ax = axs[c]
             ax.plot(t, evokeds_target[j])
             ax.plot(t, evokeds_non_target[j])
@@ -108,26 +109,18 @@ def create_target_plot(raw, chan, resample_flag=False, new_sampling=None):
     return figures
 
 
-def create_and_save_fig(raw, rec_folder_name):
+def create_and_save_fig(raw, rec_folder_name, resample_freq, resample_flag):
     plt.ioff()
     raw = preprocess(raw)
-    chan = {
-        'Center': ['C3', 'C4', 'Cz'],
-        'Frontal': ['FC2', 'FC5', 'FC6'],
-        'Parietal':['CP1', 'CP2', 'CP5', 'CP6'],
-        'Occipital': ['O1', 'O2']
-    }
-    # raw.info['bads'] = bad_electrodes  # todo
     fig_path = create_figures_folder(rec_folder_name)
-    raw_blocks, fs = crop_data(raw)
+    # raw_blocks, fs = crop_data(raw)
 
     # fig_raw_class = create_raw_plots(raw_blocks, fs)
     # fig_raw_class.savefig(os.path.join(fig_path, "raw.png"))
 
-    figures_target = create_target_plot(raw, chan, False, 100)
+    figures_target = create_target_plot(raw, resample_freq, resample_flag)
     for i, fig in enumerate(figures_target):
         fig.savefig(os.path.join(fig_path, f"target{i}.png"))
-
 
 
 def create_figures_folder(rec_folder_name):

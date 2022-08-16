@@ -3,9 +3,13 @@ from board import Board
 import os
 import numpy as np
 from GUI import GUI
-from data_folder import create_session_folder, json_save
+from data_utils import create_session_folder, json_save, find_subj_file_name, json_load
 from Marker import Marker
 import random
+from preprocessing import preprocess
+from classifier import raw_to_train_data
+from sklearn.svm import SVC
+
 
 BG_COLOR = "white"
 STIM_COLOR = "black"
@@ -21,12 +25,17 @@ def run_session():
 
     # import psychopy only here to prevent pygame loading
     from psychopy import visual, core, event
-    global visual, core, event
+    global visual, core, event, best_params
 
     # open GUI and insert the rec params
     g = GUI()
     rec_params = g.run_gui()
     stims_dict = rec_params['Stimulus Type']
+
+    # if online
+    if rec_params["online"]:
+        rec_file_path = find_subj_file_name(rec_params["name"])
+        best_params = json_load(os.path.join(rec_file_path, "best_params.json"))
 
     # create the session set
     session_set = []
@@ -46,7 +55,8 @@ def run_session():
                                      f"\nPress any key to start the session", color=STIM_COLOR)
 
     # start recording
-    with Board(use_synthetic=rec_params['Use synthetic']) as board:
+    use_synthetic = not (rec_params['Use synthetic'] == "False")
+    with Board(use_synthetic=use_synthetic) as board:
 
         # display starting massage
         show_stim_key_press(win, msg1)
@@ -71,6 +81,19 @@ def run_session():
                 board.insert_marker(stim.value)
                 show_stim_and_fixation(win, stims_dict, stim.name, rec_params['StimOnset'], rec_params['interTime'])
 
+            # online predict
+            if rec_params['Online']:
+                # We need to wait a short time between the end of the trial and trying to get it's data to make sure
+                # that we have recorded (trial_duration * sfreq) samples after the latest marker (otherwise the epoch
+                # will be too short)
+                core.wait(0.5)
+
+                last_raw = board.get_data()
+                best_channels = best_params["channels"].get()
+                best_clf_params = best_params["parameters"]
+                get_prediction(last_raw, best_channels, best_clf_params)
+                display_result(best_params)
+
         core.wait(0.5)
         win.close()
         raw = board.get_data()
@@ -78,7 +101,37 @@ def run_session():
     core.quit()
 
 
+def get_prediction(raw, channels, best_clf_params):
+    "Get the prediction of the block"
+    preprosess_raw = preprocess(raw)
+    [c_matrix, ] = raw_to_train_data(raw, channels)
+
+    clf = SVC(C=best_clf_params["C"], kernel=best_clf_params["kernal"], shrinking=best_clf_params["shrinking"])
+    predict = clf.predict(c_matrix)
+    return predict
+    # clf_svm = cross_val_score(SVC(), c_matrix, target_vec, cv=5)
+    # return clf_svm
+
+
+def display_result(win , predict, target):
+    "Show the prediction result"
+    if predict == target:
+        txt = "The prediction and the target is the same!"
+    else:
+        txt = "Sorry! The target and the prediction is not the same!"
+    viz_txt = visual.TextStim(win, text=txt)
+
+    if 'escape' in event.getKeys():
+        core.quit()
+
+    viz_txt.draw()
+    win.flip()
+    core.wait(1)
+    win.flip()
+
+
 def create_block(trials_N, odd_percent):
+    "Create the session block"
     trials = np.random.uniform(0, 1, trials_N)
     block_traget = random.choice(Marker.all_target_stim())
     block_set = []
@@ -120,7 +173,7 @@ def show_stim_and_fixation(win, stims_dict, stim_name, StimOnset, interTime):
     core.wait(StimOnset)
     fixation.draw()
     win.flip()
-    core.wait(interTime + float(np.random.uniform(0, 0.2)))  # adding noise
+    core.wait(interTime + float(np.random.uniform(0, interTime)))  # adding noise
 
 
 def show_stim_key_press(win, txt_msg):
@@ -148,7 +201,8 @@ def progress_image(win, stims_dict, stim_cls):
 
 
 def save_raw(raw, session_set, subj_name):
-    folder_path = create_session_folder(subj_name)
+    folder_name = find_subj_file_name(subj_name)
+    folder_path = os.path.join(RECORDINGS_DIR, folder_name)
     raw.save(os.path.join(folder_path, "raw.fif"))
     json_save(folder_path, "session.json", session_set)
     return os.path.basename(folder_path)

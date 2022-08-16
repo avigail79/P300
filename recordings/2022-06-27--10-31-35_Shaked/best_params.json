@@ -1,0 +1,13 @@
+{
+    "name": "SVM",
+    "accuracy": 0.75,
+    "parameters": {
+        "C": 1.5,
+        "kernel": "sigmoid",
+        "shrinking": true
+    },
+    "channels": [
+        "C4",
+        "CP6"
+    ]
+}

@@ -6,3 +6,10 @@ RECORDING_PARAMS_PATH = "./recording_params.json"
 # HYPERPARAMS_DIR = "../hyperparams"
 DEFAULT_PARAMS_PATH = "./default_params.json"
 
+CHAN = {'Center': ['C3', 'C4', 'Cz'],
+        'Frontal': ['FC2', 'FC5', 'FC6'],
+        'Parietal':['CP1', 'CP2', 'CP5', 'CP6'],
+        'Occipital': ['O1', 'O2']
+        }
+
+
