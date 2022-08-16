@@ -9,7 +9,6 @@ from preprocessing import get_average_corr
 
 
 def health_check():
-    # rec_params = load_rec_params_to_session("Ido")
     window_size = 2
     with Board(use_synthetic=False) as board:
         plt.ion()

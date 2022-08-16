@@ -1,0 +1,17 @@
+{
+    "Use synthetic": "False",
+    "Online": "False",
+    "Subject name": "Shaked",
+    "Stimulus Type": {
+        "NON_TARGET": "black circle",
+        "TARGET_1": "black square",
+        "TARGET_2": "black triangle"
+    },
+    "trials_N": 70,
+    "blocks_N": 10,
+    "odd percent": 0.14285714285714285,
+    "get ready duration": 5,
+    "calibration duration": 1,
+    "StimOnset": 0.3,
+    "interTime": 0.2
+}

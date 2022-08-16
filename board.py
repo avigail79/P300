@@ -48,6 +48,7 @@ class Board:
 
     @property
     def channel_names(self):
+        print(" DEBUG ------------ ", str(self.board_id))
         if self.board_id == BoardIds.CYTON_DAISY_BOARD:
             return EEG_CHAN_NAMES
         return self.brainflow_board.get_eeg_names(self.board_id)[:-NUM_CHANNELS_REMOVE]
